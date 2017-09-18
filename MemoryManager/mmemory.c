@@ -1,5 +1,7 @@
 #include "mmemory.h"
 #include <stddef.h>
+#include <math.h>  
+#include <stdio.h>
 
 struct real_memory virtual_memory;
 struct real_memory physical_memory;

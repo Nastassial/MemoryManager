@@ -5,14 +5,14 @@
 typedef char* VA;	// Тип описывающий адрес блока 	
 
 struct segment {
-	VA* adress;
+	VA adress;
 	unsigned int size;
 	bool isFree;
 	bool access;
 };
 
 struct real_memory {
-	VA* adress;
+	VA adress;
 	unsigned int size;
 };
 
