@@ -1,7 +1,6 @@
 #include "mmemory.h"
 #include <stddef.h>
 
-typedef char* VA;				// Тип описывающий адрес блока 
 struct real_memory virtual_memory;
 struct real_memory physical_memory;
 struct segment* virtual_memory_array;
@@ -9,110 +8,58 @@ struct segment* physical_memory_array;
 int number_of_virtual_segments = 0;
 int number_of_physical_segments = 0;
 
-								/**
-								@func	_malloc
-								@brief	Выделяет блок памяти определенного размера
+const int SUCCESSFUL_EXECUTION = 0;
+const int INCORRECT_PARAMETERS = -1;
+const int LACK_OF_MEMORY = -2;
+const int UNKNOWN_ERROR = 1;
+const int ACCESS_OUTSIDE_BLOCK = -2;
 
-								@param	[out] ptr		адресс блока
-								@param	[in]  szBlock	размер блока
 
-								@return	код ошибки
-								@retval	0	успешное выполнение
-								@retval	-1	неверные параметры
-								@retval	-2	нехватка памяти
-								@retval	1	неизвестная ошибка
-								**/
+//Выделяет блок памяти определенного размера
+//адрес блока, размер блока, код ошибки: 0, -1, -2, 1
 int _malloc(VA* ptr, size_t szBlock)
 {
-	return 1;
+	return SUCCESSFUL_EXECUTION;
 }
 
 
-
-/**
-@func	_free
-@brief	Удаление блока памяти
-
-@param	[in] ptr		адресс блока
-
-@return	код ошибки
-@retval	0	успешное выполнение
-@retval	-1	неверные параметры
-@retval	1	неизвестная ошибка
-**/
+//Удаление блока памяти
+//адрес блока, код ошибки: 0, -1, 1
 int _free(VA ptr)
 {
-	return 1;
+	return SUCCESSFUL_EXECUTION;
 }
 
-
-
-/**
-@func	_read
-@brief	Чтение информации из блока памяти
-
-@param	[in] ptr		адресс блока
-@param	[in] pBuffer	адресс буфера куда копируется инфомация
-@param	[in] szBuffer	размер буфера
-
-@return	код ошибки
-@retval	0	успешное выполнение
-@retval	-1	неверные параметры
-@retval	-2	доступ за пределы блока
-@retval	1	неизвестная ошибка
-**/
+//Чтение информации из блока памяти
+//адрес блока, адрес буфера(куда копируется информация), размер буфера, код ошибки: 0, -1, -2, 1
 int _read(VA ptr, void* pBuffer, size_t szBuffer)
 {
-	return 1;
+	return SUCCESSFUL_EXECUTION;
 }
 
-
-
-/**
-@func	_write
-@brief	Запись информации в блок памяти
-
-@param	[in] ptr		адресс блока
-@param	[in] pBuffer	адресс буфера куда копируется инфомация
-@param	[in] szBuffer	размер буфера
-
-@return	код ошибки
-@retval	0	успешное выполнение
-@retval	-1	неверные параметры
-@retval	-2	доступ за пределы блока
-@retval	1	неизвестная ошибка
-**/
-int _write(VA ptr, void* pBuffer, size_t szBuffer)
+//Запись информации в блок памяти
+//адрес блока, адрес буфера(куда копируется информация), размер буфера, код ошибки: 0, -1, -2, 1
+int _write(VA ptr, void* pBuffer, size_t szBuffer) 
 {
-	return 1;
+	return SUCCESSFUL_EXECUTION;
 }
 
-
-
-/**
-@func	_init
-@brief	Инициализация модели менеджера памяти
-
-@param	[in] n		количество страниц
-@param	[in] szPage	размер страницы
-
-В варианте 1 и 2 общий объем памяти расчитывается как n*szPage
-
-@return	код ошибки
-@retval	0	успешное выполнение
-@retval	-1	неверные параметры
-@retval	1	неизвестная ошибка
-**/
-int _init(int n, int szPage)
+//количество страниц и размер страницы, код ошибки: 0, -1, 1 
+int _init(int n, int szPage) 
 {
-	if (n <= 0 || szPage <= 0) return -1;
+	if (n <= 0 || szPage <= 0) return INCORRECT_PARAMETERS;
+
 	int virtual_size = n*szPage;
-	virtual_memory.adress = (char*)malloc(virtual_size);
-	if (virtual_memory.adress == NULL) return 1;
+	virtual_memory.adress = (VA)malloc(virtual_size);
+
+	if (virtual_memory.adress == NULL) return UNKNOWN_ERROR;
+
 	virtual_memory.size = virtual_size;
 	physical_memory.size = round(virtual_size / 2);
-	physical_memory.adress = (char*)malloc(physical_memory.size);
-	if (physical_memory.adress == NULL) return 1;
+	physical_memory.adress = (VA)malloc(physical_memory.size);
+	
+	if (physical_memory.adress == NULL) return UNKNOWN_ERROR;
+	
 	virtual_memory_array = (struct segment*)malloc(virtual_size * sizeof(struct segment));
 	physical_memory_array = (struct segment*)malloc(physical_memory.size * sizeof(struct segment));
 	struct segment initial_virtual_segment;
@@ -125,5 +72,6 @@ int _init(int n, int szPage)
 	initial_physical_segment.size = physical_memory.size;
 	initial_physical_segment.isFree = true;
 	physical_memory_array[number_of_physical_segments] = initial_physical_segment;
-	return 0;
+
+	return SUCCESSFUL_EXECUTION;
 }

@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 
-typedef char* VA;		
+typedef char* VA;	// Тип описывающий адрес блока 	
 
 struct segment {
 	VA* adress;
