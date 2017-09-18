@@ -1,6 +1,20 @@
 #include <stddef.h>
+#include <stdbool.h>
 
-typedef char* VA;				
+
+typedef char* VA;		
+
+struct segment {
+	VA* adress;
+	unsigned int size;
+	bool isFree;
+	bool access;
+};
+
+struct real_memory {
+	VA* adress;
+	unsigned int size;
+};
 
 int _malloc(VA* ptr, size_t szBlock);
 

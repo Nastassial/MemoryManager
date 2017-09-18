@@ -4,5 +4,6 @@
 void main()
 {
 	printf("HELLO!");
+	int k = _init(2, 40);
 	getch();
 }
