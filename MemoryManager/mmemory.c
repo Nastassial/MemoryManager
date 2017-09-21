@@ -18,8 +18,10 @@ const int LACK_OF_MEMORY = -2;
 const int UNKNOWN_ERROR = 1;
 const int ACCESS_OUTSIDE_BLOCK = -2;
 
-struct segment *initial_virtual_segment;
-struct segment *initial_physical_segment;
+struct segment* initial_virtual_segment;
+struct segment* initial_physical_segment;
+struct segment* current_virtual_segment;
+struct segment* current_physical_segment;
 
 //Выделяет блок памяти определенного размера
 //адрес блока, размер блока, код ошибки: 0, -1, -2, 1
@@ -27,67 +29,12 @@ int _malloc(VA* ptr, size_t szBlock)
 {
 	if (physical_memory.size < szBlock) return LACK_OF_MEMORY;
 	
-	struct segment *current_virtual_segment = initial_virtual_segment;
+	current_virtual_segment = initial_virtual_segment;
+	current_physical_segment = initial_physical_segment;
 
-	while (current_virtual_segment->next != NULL)
-	{
-		if (current_virtual_segment->isFree == true && current_virtual_segment->size >= szBlock)
-		{
-			size_t block_size = current_virtual_segment->size;
+	createSegment(current_virtual_segment, ptr, szBlock);
+	createSegment(current_physical_segment, ptr, szBlock);
 
-			if (block_size == szBlock)
-			{
-				current_virtual_segment->isFree = false;
-				ptr = current_virtual_segment->adress;
-				break;
-			}
-			else
-			{
-				current_virtual_segment->size = szBlock;
-				current_virtual_segment->isFree = false;
-				ptr = current_virtual_segment->adress;
-				struct segment *new_segment;
-				new_segment->isFree = true;
-				new_segment->adress = current_virtual_segment->adress + szBlock;
-				new_segment->size = block_size - szBlock;
-				current_virtual_segment->next = new_segment;
-				new_segment->next = NULL;
-				number_of_virtual_segments++;
-				break;
-			}
-			current_virtual_segment = current_virtual_segment->next;
-		}
-	}
-
-	struct segment* current_physical_segment = initial_physical_segment;
-
-	while(current_physical_segment->next != NULL)
-	{
-		if (current_physical_segment->isFree == true && current_physical_segment->size >= szBlock)
-		{
-			size_t block_size = current_physical_segment->size;
-
-			if (block_size == szBlock)
-			{
-				current_physical_segment->isFree = false;
-				break;
-			}
-			else
-			{
-				current_physical_segment->size = szBlock;
-				current_physical_segment->isFree = false;
-				struct segment *new_segment;
-				new_segment->isFree = true;
-				new_segment->adress = current_physical_segment->adress + szBlock;
-				new_segment->size = block_size - szBlock;
-				current_physical_segment->next = new_segment;
-				new_segment->next = NULL;
-				number_of_physical_segments++;
-				break;
-			}
-			current_physical_segment = current_physical_segment->next;
-		}
-	}
 	return SUCCESSFUL_EXECUTION;
 }
 
@@ -143,4 +90,40 @@ int _init(int n, int szPage)
 	number_of_physical_segments++;
 
 	return SUCCESSFUL_EXECUTION;
+}
+
+void createSegment(struct segment * current_segment, VA* ptr, size_t szBlock)
+{
+	while (current_segment->next != NULL)
+	{
+		if (current_segment->isFree == true && current_segment->size >= szBlock)
+		{
+			size_t block_size = current_segment->size;
+
+			if (current_segment == current_virtual_segment)
+			{
+				ptr = current_segment->adress;
+			}
+
+			if (block_size == szBlock)
+			{
+				current_segment->isFree = false;
+				break;
+			}
+			else
+			{
+				current_segment->size = szBlock;
+				current_segment->isFree = false;
+				struct segment *new_segment;
+				new_segment->isFree = true;
+				new_segment->adress = current_segment->adress + szBlock;
+				new_segment->size = block_size - szBlock;
+				current_segment->next = new_segment;
+				new_segment->next = NULL;
+				number_of_virtual_segments++;
+				break;
+			}
+			current_segment = current_segment->next;
+		}
+	}
 }
