@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <math.h>  
 #include <stdio.h>
+#include <stdlib.h>
 
 struct real_memory virtual_memory;
 struct real_memory physical_memory;
@@ -17,72 +18,74 @@ const int LACK_OF_MEMORY = -2;
 const int UNKNOWN_ERROR = 1;
 const int ACCESS_OUTSIDE_BLOCK = -2;
 
+struct segment *initial_virtual_segment;
+struct segment *initial_physical_segment;
 
 //Выделяет блок памяти определенного размера
 //адрес блока, размер блока, код ошибки: 0, -1, -2, 1
 int _malloc(VA* ptr, size_t szBlock)
 {
 	if (physical_memory.size < szBlock) return LACK_OF_MEMORY;
+	
+	struct segment *current_virtual_segment = initial_virtual_segment;
 
-	for (int i = 0; i <= number_of_virtual_segments; i++)
+	while (current_virtual_segment->next != NULL)
 	{
-		if (virtual_memory_array[i].isFree == true && virtual_memory_array[i].size >= szBlock)
+		if (current_virtual_segment->isFree == true && current_virtual_segment->size >= szBlock)
 		{
-			size_t block_size = virtual_memory_array[i].size;
+			size_t block_size = current_virtual_segment->size;
+
 			if (block_size == szBlock)
 			{
-				virtual_memory_array[i].isFree = false;
-				ptr = virtual_memory_array[i].adress;
+				current_virtual_segment->isFree = false;
+				ptr = current_virtual_segment->adress;
 				break;
 			}
 			else
 			{
-				virtual_memory_array[i].size = szBlock;
-				virtual_memory_array[i].isFree = false;
-				ptr = virtual_memory_array[i].adress;
-				struct segment new_segment;
-				new_segment.isFree = true;
-				new_segment.adress = virtual_memory_array[i].adress + szBlock;
-				new_segment.size = block_size - szBlock;
+				current_virtual_segment->size = szBlock;
+				current_virtual_segment->isFree = false;
+				ptr = current_virtual_segment->adress;
+				struct segment *new_segment;
+				new_segment->isFree = true;
+				new_segment->adress = current_virtual_segment->adress + szBlock;
+				new_segment->size = block_size - szBlock;
+				current_virtual_segment->next = new_segment;
+				new_segment->next = NULL;
 				number_of_virtual_segments++;
-				virtual_memory_array[number_of_virtual_segments] = new_segment;
-				int k;
-				k = 10;
-				/*virtual_memory_array[++i].adress = virtual_memory_array[i].adress + szBlock;
-				virtual_memory_array[i].size = block_size - szBlock;
-				virtual_memory_array[i].isFree = true;*/
 				break;
 			}
+			current_virtual_segment = current_virtual_segment->next;
 		}
 	}
-	if (szBlock <= free_physical_memory)
+
+	struct segment* current_physical_segment = initial_physical_segment;
+
+	while(current_physical_segment->next != NULL)
 	{
-		for (int i = 0; i <= number_of_physical_segments; i++)
+		if (current_physical_segment->isFree == true && current_physical_segment->size >= szBlock)
 		{
-			if (physical_memory_array[i].isFree == true && physical_memory_array[i].size >= szBlock)
+			size_t block_size = current_physical_segment->size;
+
+			if (block_size == szBlock)
 			{
-				size_t block_size = physical_memory_array[i].size;
-				if (block_size == szBlock)
-				{
-					physical_memory_array[i].isFree = false;
-					break;
-				}
-				else
-				{
-					physical_memory_array[i].size = szBlock;
-					physical_memory_array[i].isFree = false;
-					struct segment new_segment;
-					new_segment.isFree = true;
-					new_segment.adress = virtual_memory_array[i].adress + szBlock;
-					new_segment.size = block_size - szBlock;
-					virtual_memory_array[++i] = new_segment;
-					number_of_physical_segments++;
-					/*physical_memory_array[++i].adress = physical_memory_array[i].adress + szBlock;
-					physical_memory_array[i].size = block_size - szBlock;
-					physical_memory_array[i].isFree = true;*/
-					break;
-				}
+				current_physical_segment->isFree = false;
+				break;
 			}
+			else
+			{
+				current_physical_segment->size = szBlock;
+				current_physical_segment->isFree = false;
+				struct segment *new_segment;
+				new_segment->isFree = true;
+				new_segment->adress = current_physical_segment->adress + szBlock;
+				new_segment->size = block_size - szBlock;
+				current_physical_segment->next = new_segment;
+				new_segment->next = NULL;
+				number_of_physical_segments++;
+				break;
+			}
+			current_physical_segment = current_physical_segment->next;
 		}
 	}
 	return SUCCESSFUL_EXECUTION;
@@ -123,25 +126,21 @@ int _init(int n, int szPage)
 
 	virtual_memory.size = virtual_size;
 	physical_memory.size = round(virtual_size / 2);
-	free_physical_memory = physical_memory.size;
-	//physical_memory.adress = (VA)malloc(physical_memory.size);
 	physical_memory.adress = virtual_memory.adress;
 	
 	if (physical_memory.adress == NULL) return UNKNOWN_ERROR;
-	
-	virtual_memory_array = (struct segment*)malloc(virtual_size * sizeof(struct segment));
-	physical_memory_array = (struct segment*)malloc(physical_memory.size * sizeof(struct segment));
-	struct segment initial_virtual_segment;
-	initial_virtual_segment.adress = virtual_memory.adress;
-	initial_virtual_segment.size = virtual_memory.size;
-	initial_virtual_segment.isFree = true;
-	virtual_memory_array[number_of_virtual_segments] = initial_virtual_segment;
 
-	struct segment initial_physical_segment;
-	initial_physical_segment.adress = physical_memory.adress;
-	initial_physical_segment.size = physical_memory.size;
-	initial_physical_segment.isFree = true;
-	physical_memory_array[number_of_physical_segments] = initial_physical_segment;
+	initial_virtual_segment->adress = virtual_memory.adress;
+	initial_virtual_segment->size = virtual_memory.size;
+	initial_virtual_segment->isFree = true;
+	initial_virtual_segment->next = NULL;
+	number_of_virtual_segments++;
+
+	initial_physical_segment->adress = physical_memory.adress;
+	initial_physical_segment->size = physical_memory.size;
+	initial_physical_segment->isFree = true;
+	initial_physical_segment->next = NULL;
+	number_of_physical_segments++;
 
 	return SUCCESSFUL_EXECUTION;
 }
