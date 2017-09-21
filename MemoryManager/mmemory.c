@@ -43,25 +43,11 @@ int _malloc(VA* ptr, size_t szBlock)
 //адрес блока, код ошибки: 0, -1, 1
 int _free(VA ptr)
 {
-	struct segment *current_virtual_segment = initial_virtual_segment;
-	while (current_virtual_segment->next != NULL)
-	{
-		if (ptr == current_virtual_segment->adress) {
-			current_virtual_segment->isFree = true;
-			break;
-		}
-		current_virtual_segment = current_virtual_segment->next;
-	}
-
-	struct segment *current_physical_segment = initial_physical_segment;
-	while (current_physical_segment->next != NULL)
-	{
-		if (ptr == current_physical_segment->adress) {
-			current_physical_segment->isFree = true;
-			break;
-		}
-		current_physical_segment = current_physical_segment->next;
-	}
+	current_virtual_segment = initial_virtual_segment;
+	current_physical_segment = initial_physical_segment;
+	
+	freeSegment(current_virtual_segment, ptr);
+	freeSegment(current_physical_segment, ptr);
 
 	return SUCCESSFUL_EXECUTION;
 }
@@ -144,5 +130,17 @@ void createSegment(struct segment * current_segment, VA* ptr, size_t szBlock)
 			}
 			current_segment = current_segment->next;
 		}
+	}
+}
+
+void freeSegment(struct segment * current_segment, VA ptr)
+{
+	while (current_segment->next != NULL)
+	{
+		if (ptr == current_segment->adress) {
+			current_segment->isFree = true;
+			break;
+		}
+		current_segment = current_segment->next;
 	}
 }
