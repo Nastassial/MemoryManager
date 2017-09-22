@@ -2,18 +2,19 @@
 #include <stdbool.h>
 
 
-typedef char* VA;		
+typedef char* VA;	// Тип описывающий адрес блока 	
 
 struct segment {
 	VA* adress;
-	unsigned int size;
+	size_t size;
 	bool isFree;
 	bool access;
+	struct segment * next;
 };
 
 struct real_memory {
 	VA* adress;
-	unsigned int size;
+	size_t size;
 };
 
 int _malloc(VA* ptr, size_t szBlock);
