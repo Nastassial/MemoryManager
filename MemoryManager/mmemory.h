@@ -8,7 +8,8 @@ struct segment {
 	VA* adress;
 	size_t size;
 	bool isFree;
-	bool access;
+	//bool access;
+	char* info;
 	struct segment * next;
 };
 
