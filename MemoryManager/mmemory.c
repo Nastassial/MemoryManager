@@ -16,6 +16,9 @@ struct real_memory physical_memory;
 struct segment initial_virtual_segment;
 struct segment initial_physical_segment;
 
+
+struct segment* current_virtual_segment;
+
 bool flag;
 
 //Выделяет блок памяти определенного размера
@@ -27,11 +30,12 @@ int _malloc(VA* ptr, size_t szBlock)
 	if (physical_memory.size < szBlock) return LACK_OF_MEMORY;
 	
 	flag = false;
-
 	//struct segment current_virtual_segment = (struct segment)malloc(sizeof(struct segment));
-	struct segment* current_virtual_segment = &initial_virtual_segment;
+	current_virtual_segment = (struct segment*)malloc(sizeof(struct segment));
 	do
 	{
+		if (current_virtual_segment != &initial_virtual_segment)
+		current_virtual_segment = current_virtual_segment->next;
 		if (current_virtual_segment->isFree == true && current_virtual_segment->size >= szBlock)
 		{
 			size_t block_size = current_virtual_segment->size;
@@ -58,7 +62,6 @@ int _malloc(VA* ptr, size_t szBlock)
 				break;
 			}
 		}
-		current_virtual_segment = current_virtual_segment->next;
 	} while (current_virtual_segment->next != NULL);
 
 	if (!flag) return LACK_OF_MEMORY;
