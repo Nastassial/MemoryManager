@@ -13,11 +13,8 @@ const int ACCESS_OUTSIDE_BLOCK = -2;
 struct real_memory virtual_memory;
 struct real_memory physical_memory;
 
-struct segment initial_virtual_segment;
-struct segment initial_physical_segment;
-
-struct segment new_virtual_segment;
-struct segment new_physical_segment;
+struct segment* initial_virtual_segment;
+struct segment* initial_physical_segment;
 
 bool flag;
 
@@ -31,80 +28,82 @@ int _malloc(VA* ptr, size_t szBlock)
 
 	flag = false;
 
-	struct segment current_virtual_segment = initial_virtual_segment;
+	struct segment* current_virtual_segment = initial_virtual_segment;
 
-	while (&current_virtual_segment != NULL) {
-		if (current_virtual_segment.isFree == true && current_virtual_segment.size >= szBlock)
+	while (current_virtual_segment != NULL) {
+		if (current_virtual_segment->isFree == true && current_virtual_segment->size >= szBlock)
 		{
-			size_t block_size = current_virtual_segment.size;
+			size_t block_size = current_virtual_segment->size;
 
 			if (block_size == szBlock)
 			{
-				current_virtual_segment.isFree = false;
-				*ptr = current_virtual_segment.adress;
+				current_virtual_segment->isFree = false;
+				*ptr = current_virtual_segment->adress;
 				flag = true;
-				initial_virtual_segment.isFree = false;
 				break;
 			}
 			else
 			{
-				current_virtual_segment.size = szBlock;
-				current_virtual_segment.isFree = false;
-				*ptr = current_virtual_segment.adress;
+				current_virtual_segment->size = szBlock;
+				current_virtual_segment->isFree = false;
+				*ptr = current_virtual_segment->adress;
 				
-				new_virtual_segment.isFree = true;
-				new_virtual_segment.adress = current_virtual_segment.adress + szBlock;
-				new_virtual_segment.size = block_size - szBlock;
-				new_virtual_segment.next = current_virtual_segment.next;
-				current_virtual_segment.next = &new_virtual_segment;
+				struct segment * new_virtual_segment = malloc(sizeof(struct segment));
+				new_virtual_segment->isFree = true;
+				new_virtual_segment->adress = current_virtual_segment->adress + szBlock;
+				new_virtual_segment->size = block_size - szBlock;
+				new_virtual_segment->next = (struct segment*)malloc(sizeof(struct segment));
+				new_virtual_segment->next = current_virtual_segment->next;
+				if (current_virtual_segment->next == NULL) {
+					current_virtual_segment->next = (struct segment*)malloc(sizeof(struct segment));
+				}
+				current_virtual_segment->next = new_virtual_segment;
 				flag = true;
-
-				initial_virtual_segment.size = szBlock;
-				initial_virtual_segment.isFree = false;
-				initial_virtual_segment.next = &new_virtual_segment;
 				break;
 			}
 		}
-		current_virtual_segment = *current_virtual_segment.next;
+		current_virtual_segment = current_virtual_segment->next;
 	}
 
 	if (!flag) return LACK_OF_MEMORY;
 
-	struct segment current_physical_segment = initial_physical_segment;
 
-	while (&current_physical_segment != NULL) {
+	struct segment* current_physical_segment = initial_physical_segment;
 
-		if (current_physical_segment.isFree == true && current_physical_segment.size >= szBlock)
+	while (current_physical_segment != NULL) {
+
+		if (current_physical_segment->isFree == true && current_physical_segment->size >= szBlock)
 		{
-			size_t block_size = current_physical_segment.size;
+			size_t block_size = current_physical_segment->size;
 
 			if (block_size == szBlock)
 			{
-				current_physical_segment.isFree = false;
-				initial_physical_segment.isFree = false;
-				current_virtual_segment.physical_adress = current_physical_segment.adress;
+				current_physical_segment->isFree = false;
+				current_virtual_segment->physical_adress = current_physical_segment->adress;
 				break;
 			}
 			else
 			{
-				current_physical_segment.size = szBlock;
-				current_physical_segment.isFree = false;
+				current_physical_segment->size = szBlock;
+				current_physical_segment->isFree = false;
 			
-				new_physical_segment.isFree = true;
-				new_physical_segment.adress = current_physical_segment.adress + szBlock;
-				new_physical_segment.size = block_size - szBlock;
-				new_physical_segment.next = current_physical_segment.next;
-				current_physical_segment.next = &new_physical_segment;
+				struct segment* new_physical_segment = (struct segment*)malloc(sizeof(struct segment));
+				new_physical_segment->isFree = true;
+				new_physical_segment->adress = current_physical_segment->adress + szBlock;
+				new_physical_segment->size = block_size - szBlock;
+				new_physical_segment->next = (struct segment*)malloc(sizeof(struct segment));
+				
+				new_physical_segment->next = current_physical_segment->next;
+				if (current_physical_segment->next == NULL) {
+					current_physical_segment->next = (struct segment*)malloc(sizeof(struct segment));
+				}
+				current_physical_segment->next = new_physical_segment;
 
-				initial_physical_segment.isFree = false;
-				initial_physical_segment.size = szBlock;
-				initial_physical_segment.next = &new_physical_segment;
-				current_virtual_segment.physical_adress = current_physical_segment.adress;
-
+				current_virtual_segment->physical_adress = current_physical_segment->adress;
 				break;
 			}
 		}
-		current_physical_segment = *current_physical_segment.next;
+		current_physical_segment = current_physical_segment->next;
 	}
 	return SUCCESSFUL_EXECUTION;
 }
@@ -118,39 +117,34 @@ int _free(VA ptr)
 
 	flag = false;
 
-    //struct segment *current_virtual_segment = (struct segment*)malloc(sizeof(struct segment));
-	struct segment current_virtual_segment = initial_virtual_segment;
+    struct segment *current_virtual_segment = initial_virtual_segment;
 	
-	//freeSegment(ptr, current_virtual_segment);
-	do
+	while (current_virtual_segment != NULL)
 	{
-		if (ptr == current_virtual_segment.adress) {
-			current_virtual_segment.isFree = true;
-			free(current_virtual_segment.info);
+		if (ptr == current_virtual_segment->adress) {
+			current_virtual_segment->isFree = true;
+			current_virtual_segment->info = NULL;
 			flag = true;
 			break;
 		}
-		current_virtual_segment = *current_virtual_segment.next;
-	} while (current_virtual_segment.next != NULL);
+		current_virtual_segment = current_virtual_segment->next;
+	};
 
 	if (!flag) return UNKNOWN_ERROR;
 
-	//struct segment* current_physical_segment = (struct segment*)malloc(sizeof(struct segment));
-	struct segment current_physical_segment = initial_physical_segment;
-	
-	//freeSegment(ptr, current_physical_segment);
-	do
-	{
-		if (ptr == current_physical_segment.adress) {
-			current_physical_segment.isFree = true;
-			free(current_physical_segment.info);
-			flag = true;
-			break;
+	if (current_virtual_segment->physical_adress != NULL) {
+		struct segment* current_physical_segment = initial_physical_segment;
+
+		while (current_physical_segment != NULL)
+		{
+			if (current_virtual_segment->physical_adress == current_physical_segment->adress) {
+				current_physical_segment->isFree = true;
+				current_physical_segment->info= NULL;
+				break;
+			}
+				current_physical_segment = current_physical_segment->next;
 		}
-		if (current_physical_segment.next != NULL) {
-			current_physical_segment = *current_physical_segment.next;
-		}
-	} while (current_physical_segment.next != NULL);
+	}
 
 	return SUCCESSFUL_EXECUTION;
 }
@@ -161,7 +155,7 @@ int _read(VA ptr, void* pBuffer, size_t szBuffer)
 {
 	return SUCCESSFUL_EXECUTION;
 }
-
+/*
 //Запись информации в блок памяти
 //адрес блока, адрес буфера(куда копируется информация), размер буфера, код ошибки: 0, -1, -2, 1
 int _write(VA ptr, void* pBuffer, size_t szBuffer) 
@@ -301,7 +295,7 @@ int _write(VA ptr, void* pBuffer, size_t szBuffer)
 	}
 	if (!flag) return UNKNOWN_ERROR;
 	else return SUCCESSFUL_EXECUTION;
-}
+}*/
 
 //количество страниц и размер страницы, код ошибки: 0, -1, 1 
 int _init(int n, int szPage) 
@@ -318,17 +312,21 @@ int _init(int n, int szPage)
 
 	if (virtual_memory.adress == NULL || physical_memory.adress == NULL) return UNKNOWN_ERROR;
 
-	initial_physical_segment.adress = physical_memory.adress;
-	initial_physical_segment.info = NULL;
-	initial_physical_segment.size = physical_memory.size;
-	initial_physical_segment.isFree = true;
-	initial_physical_segment.next = NULL;
+	initial_physical_segment = (struct segment*)malloc(sizeof(struct segment));
 
-	initial_virtual_segment.adress = virtual_memory.adress;
-	initial_virtual_segment.physical_adress = initial_physical_segment.adress;
-	initial_virtual_segment.size = virtual_memory.size;
-	initial_virtual_segment.isFree = true;
-	initial_virtual_segment.next = NULL;
+	initial_physical_segment->adress = physical_memory.adress;
+	initial_physical_segment->info = NULL;
+	initial_physical_segment->size = physical_memory.size;
+	initial_physical_segment->isFree = true;
+	initial_physical_segment->next = NULL;
+
+	initial_virtual_segment = (struct segment*)malloc(sizeof(struct segment));
+
+	initial_virtual_segment->adress = virtual_memory.adress;
+	initial_virtual_segment->physical_adress = initial_physical_segment->adress;
+	initial_virtual_segment->size = virtual_memory.size;
+	initial_virtual_segment->isFree = true;
+	initial_virtual_segment->next = NULL;
 	
 	return SUCCESSFUL_EXECUTION;
 }
