@@ -5,7 +5,7 @@ typedef char* VA;	// Тип описывающий адрес блока
 
 struct segment {
 	VA adress;
-	VA physical_adress;
+	struct segment* physical_adress;
 	size_t size;
 	bool isFree;
 	char* info;
