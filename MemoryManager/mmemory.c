@@ -1,14 +1,8 @@
-#include "mmemory.h"
 #include <stddef.h>
 #include <math.h>  
 #include <stdio.h>
 #include <stdlib.h>
-
-const int SUCCESSFUL_EXECUTION = 0;
-const int INCORRECT_PARAMETERS = -1;
-const int LACK_OF_MEMORY = -2;
-const int UNKNOWN_ERROR = 1;
-const int ACCESS_OUTSIDE_BLOCK = -2;
+#include "mmemory.h"
 
 struct real_memory virtual_memory;
 struct real_memory physical_memory;
@@ -22,8 +16,8 @@ bool flag;
 //адрес блока, размер блока, код ошибки: 0, -1, -2, 1
 int _malloc(VA* ptr, size_t szBlock)
 {
-	if (ptr == NULL) return INCORRECT_PARAMETERS;
-
+	if (*ptr == NULL || szBlock == 0) return INCORRECT_PARAMETERS;
+	if (initial_virtual_segment == NULL || initial_physical_segment == NULL) return UNKNOWN_ERROR;
 	if (physical_memory.size < szBlock) return LACK_OF_MEMORY;
 
 	flag = false;
@@ -80,7 +74,7 @@ int _malloc(VA* ptr, size_t szBlock)
 			size_t block_size = current_physical_segment->size;
 
 			if (block_size == szBlock)
-			{
+			{ 
 				current_physical_segment->isFree = false;
 				current_virtual_segment->physical_adress = (struct segment*)malloc(sizeof(struct segment));
 				current_virtual_segment->physical_adress = current_physical_segment;
@@ -146,7 +140,7 @@ int _free(VA ptr)
 
 		while (current_physical_segment != NULL)
 		{
-			if (current_virtual_segment->physical_adress == current_physical_segment->adress) {
+			if (current_virtual_segment->physical_adress == current_physical_segment) {
 				current_physical_segment->isFree = true;
 				current_physical_segment->info= NULL;
 				current_virtual_segment->physical_adress = NULL;
@@ -165,18 +159,18 @@ int _read(VA ptr, char* pBuffer, size_t szBuffer)
 {
 	char* temp = (char*)pBuffer;
 	int k = strlen(temp);
-	if (ptr == NULL || strlen(temp)<szBuffer || szBuffer <=0) return INCORRECT_PARAMETERS;
+	if (ptr == NULL || strlen(temp)<szBuffer || szBuffer == 0) return INCORRECT_PARAMETERS;
 	bool flag = false;
 	struct segment* current_virtual_segment = initial_virtual_segment;
 	while (current_virtual_segment != NULL)
 	{
 		if (ptr == current_virtual_segment->adress) {
-			if (current_virtual_segment->isFree == true || current_virtual_segment->info == NULL) return UNKNOWN_ERROR;
+			//if (current_virtual_segment->isFree == true || current_virtual_segment->info == NULL) return UNKNOWN_ERROR;
+			if (current_virtual_segment->info == NULL) return UNKNOWN_ERROR;
 			size_t infoSize;
 			if (szBuffer > strlen(current_virtual_segment->info)) {
 				return INCORRECT_PARAMETERS;
 			}
-
 			else {
 				infoSize = szBuffer;
 			}
@@ -276,7 +270,7 @@ int _read(VA ptr, char* pBuffer, size_t szBuffer)
 		current_virtual_segment = current_virtual_segment->next;
 	}
 	if (!flag) return UNKNOWN_ERROR;
-	else return SUCCESSFUL_EXECUTION;
+	return SUCCESSFUL_EXECUTION;
 }
 
 //Запись информации в блок памяти
@@ -284,13 +278,13 @@ int _read(VA ptr, char* pBuffer, size_t szBuffer)
 int _write(VA ptr, void* pBuffer, size_t szBuffer) 
 {
 	char *newInfo = (char*)pBuffer;
-	if (ptr == NULL || strlen(newInfo) < szBuffer || szBuffer <= 0) return INCORRECT_PARAMETERS;
+	if (ptr == NULL || strlen(newInfo) < szBuffer || szBuffer == 0) return INCORRECT_PARAMETERS;
 	bool flag = false;
 	struct segment* current_virtual_segment = initial_virtual_segment;
 	while (current_virtual_segment != NULL)
 	{
 		if (ptr == current_virtual_segment->adress) {
-			if (current_virtual_segment->isFree == true) return UNKNOWN_ERROR;
+			//if (current_virtual_segment->isFree == true) return UNKNOWN_ERROR;
 			size_t infoSize;
 			if (szBuffer > current_virtual_segment->size) {
 				return INCORRECT_PARAMETERS;
@@ -412,7 +406,7 @@ int _write(VA ptr, void* pBuffer, size_t szBuffer)
 		current_virtual_segment = current_virtual_segment->next;
 	}
 	if (!flag) return UNKNOWN_ERROR;
-	else return SUCCESSFUL_EXECUTION;
+	return SUCCESSFUL_EXECUTION;
 }
 
 //количество страниц и размер страницы, код ошибки: 0, -1, 1 
@@ -427,8 +421,6 @@ int _init(int n, int szPage)
 
 	virtual_memory.adress = (VA)malloc(virtual_memory.size);
 	physical_memory.adress = (VA)malloc(physical_memory.size);
-
-	if (virtual_memory.adress == NULL || physical_memory.adress == NULL) return UNKNOWN_ERROR;
 
 	initial_physical_segment = (struct segment*)malloc(sizeof(struct segment));
 
@@ -448,19 +440,4 @@ int _init(int n, int szPage)
 	initial_virtual_segment->info = NULL;
 
 	return SUCCESSFUL_EXECUTION;
-}
-
-
-void freeSegment(VA* ptr, struct segment current_segment)
-{
-	do
-	{
-		if (ptr == current_segment.adress) {
-			current_segment.isFree = true;
-			free(current_segment.info);
-			flag = true;
-			break;
-		}
-		current_segment = *current_segment.next;
-	} while (current_segment.next != NULL);
 }

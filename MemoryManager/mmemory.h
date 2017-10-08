@@ -1,7 +1,16 @@
+#ifndef MEMORY_H
+#define MEMORY_H
+
 #include <stddef.h>
 #include <stdbool.h>
 
 typedef char* VA;	// Тип описывающий адрес блока 	
+
+#define  SUCCESSFUL_EXECUTION  0
+#define  INCORRECT_PARAMETERS  -1
+#define  LACK_OF_MEMORY  -2
+#define  UNKNOWN_ERROR  1
+#define  ACCESS_OUTSIDE_BLOCK  -2
 
 struct segment {
 	VA adress;
@@ -27,4 +36,4 @@ int _write(VA ptr, void* pBuffer, size_t szBuffer);
 
 int _init(int n, int szPage);
 
-//void freeSegment(VA* ptr, struct segment* current_segment);
+#endif // MEMORY_H
