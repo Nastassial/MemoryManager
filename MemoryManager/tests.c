@@ -61,7 +61,7 @@ void test_malloc_no_enough_memory()
 	_init(2, 40);
 	_malloc(&adress, 40);
 	_malloc(&some, 40);
-	assert(_malloc(&another, 50) == LACK_OF_MEMORY);
+	assert(_malloc(&another, 30) == LACK_OF_MEMORY);
 }
 
 void test_malloc_success() 
@@ -69,6 +69,15 @@ void test_malloc_success()
 	VA adress;
 	_init(2, 40);
 	assert(_malloc(&adress, 20) == SUCCESSFUL_EXECUTION);
+}
+
+void test_malloc_null_physical_adress()
+{
+	VA adress;
+	VA some_adress;
+	_init(2, 40);
+	_malloc(&adress, 40);
+	assert(_malloc(&some_adress, 40) == SUCCESSFUL_EXECUTION);
 }
 
 
@@ -95,6 +104,35 @@ void test_free_success()
 	_init(3,20);
 	_malloc(&adress, 20);
 	assert(_free(adress) == SUCCESSFUL_EXECUTION);
+}
+
+void test_free_null_physical_adress()
+{
+	VA adress;
+	VA another_adress;
+	_init(3,20);
+	_malloc(&adress, 30);
+	_malloc(&another_adress, 20);
+	assert(_free(another_adress) == SUCCESSFUL_EXECUTION);
+}
+
+void test_free_union_of_free_segments()
+{
+	VA first_adress;
+	VA second_adress;
+	VA third_adress;
+	VA forth_adress;
+	VA fifth_adress;
+	_init(5, 20);
+	_malloc(&first_adress, 15);
+	_malloc(&second_adress, 10);
+	_malloc(&third_adress, 10);
+	_malloc(&forth_adress, 5);
+	_malloc(&fifth_adress, 24);
+	_free(first_adress);
+	_free(fifth_adress);
+	//_free(second_adress);
+	assert(_free(forth_adress) == SUCCESSFUL_EXECUTION);
 }
 
 
@@ -162,6 +200,47 @@ void test_write_success()
 	assert(_write(second_adress, str, 7) == SUCCESSFUL_EXECUTION);
 }
 
+void test_write_null_physical_segment_free_memory()
+{
+	VA first_adress;
+	VA second_adress;
+	VA third_adress;
+	char str[] = "symbols";
+	_init(2, 20);
+	_malloc(&first_adress, 10);
+	_malloc(&second_adress, 10);
+	_malloc(&third_adress, 10);
+	_free(second_adress);
+	assert(_write(third_adress, str, 7) == SUCCESSFUL_EXECUTION);
+}
+
+void test_write_null_physical_segment_no_free_memory()
+{
+	VA first_adress;
+	VA second_adress;
+	VA third_adress;
+	char str[] = "symbols";
+	_init(2, 20);
+	_malloc(&first_adress, 7);
+	_malloc(&second_adress, 10);
+	_malloc(&third_adress, 10);
+	_free(second_adress);
+	assert(_write(third_adress, str, 7) == SUCCESSFUL_EXECUTION);
+}
+
+void test_write_null_physical_segment_all_memory_busy()
+{
+	VA first_adress;
+	VA second_adress;
+	VA third_adress;
+	char str[] = "symbols";
+	_init(2, 20);
+	_malloc(&first_adress, 7);
+	_malloc(&second_adress, 10);
+	_malloc(&third_adress, 10);
+	assert(_write(third_adress, str, 7) == SUCCESSFUL_EXECUTION);
+}
+
 
 //_read()
 
@@ -223,4 +302,20 @@ void test_read_success()
 	_malloc(&adress, 12);
 	_write(adress, str, 6);
 	assert(_read(adress, buff, 4) == SUCCESSFUL_EXECUTION);
+}
+
+void test_read_null_physical_segment_free_memory()
+{
+	VA first_adress;
+	VA second_adress;
+	VA third_adress;
+	char str[] = "symbols";
+	char buff[] = "asdffhgj";
+	_init(2, 20);
+	_malloc(&first_adress, 10);
+	_malloc(&second_adress, 10);
+	_malloc(&third_adress, 10);
+	_write(third_adress, str, 7);
+	_write(first_adress, str, 5);
+	assert(_read(third_adress, buff, 5) == SUCCESSFUL_EXECUTION);
 }
