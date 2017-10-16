@@ -45,4 +45,8 @@ int _init(int n, int szPage);
 
 void unionFreeSegments();
 
+void unionFreePhysicalSegments();
+
+void create_new_physical_segment(struct p_segment * p_old_segment, struct p_segment * p_new_segment, size_t newBlockSize);
+
 #endif // MEMORY_H
