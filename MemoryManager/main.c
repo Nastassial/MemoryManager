@@ -19,7 +19,7 @@ void main()
 	//test_malloc_lack_of_memory();
 	//test_malloc_no_enough_memory();
 	//test_malloc_null_physical_adress();
-	//test_malloc_success();
+	test_malloc_success();
 	//test_free_nullptr();
 	//test_free_undefined_malloc();
 	//test_free_null_physical_adress();

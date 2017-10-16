@@ -26,6 +26,7 @@ int _malloc(VA* ptr, size_t szBlock)
 	
 
 	while (current_virtual_segment != NULL) {
+
 		if (current_virtual_segment->isFree == true && current_virtual_segment->size >= szBlock)
 		{
 			size_t block_size = current_virtual_segment->size;
@@ -44,7 +45,7 @@ int _malloc(VA* ptr, size_t szBlock)
 				*ptr = current_virtual_segment->adress;
 				
 				struct segment * new_virtual_segment = malloc(sizeof(struct segment));
-				new_virtual_segment->isFree = true;
+				/*new_virtual_segment->isFree = true;
 				new_virtual_segment->adress = current_virtual_segment->adress + szBlock;
 				new_virtual_segment->size = block_size - szBlock;
 				new_virtual_segment->next = (struct segment*)malloc(sizeof(struct segment));
@@ -54,7 +55,10 @@ int _malloc(VA* ptr, size_t szBlock)
 					current_virtual_segment->next = (struct segment*)malloc(sizeof(struct segment));
 				}
 				current_virtual_segment->next = new_virtual_segment;
-				flag = true;
+				flag = true;*/
+
+				create_new_segment(new_virtual_segment, block_size, current_virtual_segment, szBlock);
+
 				break;
 			}
 		}
@@ -87,21 +91,23 @@ int _malloc(VA* ptr, size_t szBlock)
 				current_physical_segment->isFree = false;
 			
 				struct segment* new_physical_segment = (struct segment*)malloc(sizeof(struct segment));
-				new_physical_segment->isFree = true;
+				/*new_physical_segment->isFree = true;
 				new_physical_segment->adress = current_physical_segment->adress + szBlock;
 				new_physical_segment->size = block_size - szBlock;
 				new_physical_segment->info = NULL;
 				new_physical_segment->next = (struct segment*)malloc(sizeof(struct segment));
-				
 				new_physical_segment->next = current_physical_segment->next;
 				if (current_physical_segment->next == NULL) {
 					current_physical_segment->next = (struct segment*)malloc(sizeof(struct segment));
 				}
-				current_physical_segment->next = new_physical_segment;
+				current_physical_segment->next = new_physical_segment;*/
+
+				create_new_segment(new_physical_segment, block_size, current_physical_segment, szBlock);
 
 				current_virtual_segment->physical_adress = (struct segment*)malloc(sizeof(struct segment));
 				current_virtual_segment->physical_adress = current_physical_segment;
-				flag = true;
+				//flag = true;
+
 				break;
 			}
 		}
@@ -109,6 +115,24 @@ int _malloc(VA* ptr, size_t szBlock)
 	}
 	if (!flag) current_virtual_segment->physical_adress = NULL;
 	return SUCCESSFUL_EXECUTION;
+}
+
+void create_new_segment(struct segment * new_segment, size_t block_size, struct segment * old_segment, size_t szBlock)
+{
+	new_segment->isFree = true;
+	new_segment->adress = old_segment->adress + szBlock;
+	new_segment->size = block_size - szBlock;
+	new_segment->info = NULL;
+	new_segment->next = (struct segment*)malloc(sizeof(struct segment));
+	new_segment->next = old_segment->next;
+
+	if (old_segment->next == NULL) {
+		old_segment->next = (struct segment*)malloc(sizeof(struct segment));
+	}
+
+	old_segment->next = new_segment;
+
+	flag = true;
 }
 
 
@@ -131,11 +155,13 @@ int _free(VA ptr)
 			flag = true;
 			needed_virtual_segment = current_virtual_segment;
 		}
-		if (current_virtual_segment->next != NULL && current_virtual_segment->isFree == true 
+		/*if (current_virtual_segment->next != NULL && current_virtual_segment->isFree == true 
 						&& current_virtual_segment->next->isFree == true) {
 			current_virtual_segment->size += current_virtual_segment->next->size;
 			current_virtual_segment->next = current_virtual_segment->next->next;
-		}
+		}*/
+		combine_free_segments(current_virtual_segment);
+
 		current_virtual_segment = current_virtual_segment->next;
 	};
 
@@ -144,6 +170,7 @@ int _free(VA ptr)
 	current_virtual_segment = needed_virtual_segment;
 
 	if (current_virtual_segment->physical_adress != NULL) {
+
 		struct segment* current_physical_segment = initial_physical_segment;
 
 		while (current_physical_segment != NULL)
@@ -153,17 +180,30 @@ int _free(VA ptr)
 				current_physical_segment->info= NULL;
 				current_virtual_segment->physical_adress = NULL;
 			}
-			if (current_physical_segment->next != NULL && current_physical_segment->isFree == true 
+			/*if (current_physical_segment->next != NULL && current_physical_segment->isFree == true 
 							&& current_physical_segment->next->isFree == true) 
 			{
 				current_physical_segment->size += current_physical_segment->next->size;
 				current_physical_segment->next = current_physical_segment->next->next;
-			}
+			}*/
+
+			combine_free_segments(current_physical_segment);
+
 			current_physical_segment = current_physical_segment->next;
 		}
 	}
 
 	return SUCCESSFUL_EXECUTION;
+}
+
+void combine_free_segments(struct segment* segment)
+{
+	if (segment->next != NULL && segment->isFree == true
+		&& segment->next->isFree == true)
+	{
+		segment->size += segment->next->size;
+		segment->next = segment->next->next;
+	}
 }
 
 //Чтение информации из блока памяти

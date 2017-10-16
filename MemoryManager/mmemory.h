@@ -36,4 +36,8 @@ int _write(VA ptr, void* pBuffer, size_t szBuffer);
 
 int _init(int n, int szPage);
 
+void combine_free_segments(struct segment * segment);
+
+void create_new_segment(struct segment * new_segment, size_t block_size, struct segment * old_segment, size_t szBlock);
+
 #endif // MEMORY_H
