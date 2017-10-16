@@ -175,6 +175,7 @@ int _read(VA ptr, char* pBuffer, size_t szBuffer)
 							size_t newBlockSize = current_physical_segment->size - current_virtual_segment->size;
 							struct p_segment* new_physical_segment = (struct p_segment*)malloc(sizeof(struct p_segment));
 							create_new_physical_segment(current_physical_segment, new_physical_segment, newBlockSize);
+							new_physical_segment->virtual_adress = NULL;
 							current_physical_segment->size = current_virtual_segment->size;
 							unionFreePhysicalSegments();
 						}
@@ -206,6 +207,7 @@ int _read(VA ptr, char* pBuffer, size_t szBuffer)
 					if (size > current_virtual_segment->size) {
 						struct p_segment* new_physical_segment = (struct p_segment*)malloc(sizeof(struct p_segment));
 						create_new_physical_segment(initial_physical_segment, new_physical_segment, size - current_virtual_segment->size);
+						new_physical_segment->virtual_adress = NULL;
 						unionFreePhysicalSegments();
 					}
 					current_virtual_segment->physical_adress = (struct p_segment*)malloc(sizeof(struct p_segment));
@@ -268,6 +270,7 @@ int _write(VA ptr, void* pBuffer, size_t szBuffer)
 							size_t newBlockSize = current_physical_segment->size - current_virtual_segment->size;
 							struct p_segment* new_physical_segment = (struct p_segment*)malloc(sizeof(struct p_segment));
 							create_new_physical_segment(current_physical_segment, new_physical_segment, newBlockSize);
+							new_physical_segment->virtual_adress = NULL;
 							current_physical_segment->size = current_virtual_segment->size;
 							unionFreePhysicalSegments();
 						}
@@ -305,6 +308,7 @@ int _write(VA ptr, void* pBuffer, size_t szBuffer)
 					if (size > current_virtual_segment->size) {
 						struct p_segment* new_physical_segment = (struct p_segment*)malloc(sizeof(struct p_segment));
 						create_new_physical_segment(initial_physical_segment, new_physical_segment, size - current_virtual_segment->size);
+						new_physical_segment->virtual_adress = NULL;
 						unionFreePhysicalSegments();
 					}
 					current_virtual_segment->physical_adress = (struct p_segment*)malloc(sizeof(struct p_segment));
