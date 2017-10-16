@@ -319,3 +319,19 @@ void test_read_null_physical_segment_free_memory()
 	_write(first_adress, str, 5);
 	assert(_read(third_adress, buff, 5) == SUCCESSFUL_EXECUTION);
 }
+
+void test_read_null_physical_segment_no_free_memory()
+{
+	VA first_adress;
+	VA second_adress;
+	VA third_adress;
+	char str[] = "symbols";
+	char buff[] = "asdffhgj";
+	_init(2, 20);
+	_malloc(&first_adress, 7);
+	_malloc(&second_adress, 10);
+	_malloc(&third_adress, 8);
+	_write(third_adress, str, 7);
+	_write(first_adress, str, 5);
+	assert(_read(third_adress, buff, 5) == SUCCESSFUL_EXECUTION);
+}

@@ -36,5 +36,6 @@ void test_read_big_szbuffer();
 void test_read_success();
 void test_read_undefined_write();
 void test_read_null_physical_segment_free_memory();
+void test_read_null_physical_segment_no_free_memory();
 
 #endif //TEST_H
