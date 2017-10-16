@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "mmemory.h"
 
-struct real_memory virtual_memory;  //переписать освобождение, из физ ссылка на вирт
+struct real_memory virtual_memory;  
 struct real_memory physical_memory;
 
 struct v_segment* initial_virtual_segment;
@@ -49,7 +49,8 @@ int _malloc(VA* ptr, size_t szBlock)
 				new_virtual_segment->next = (struct v_segment*)malloc(sizeof(struct v_segment));
 				new_virtual_segment->next = current_virtual_segment->next;
 				new_virtual_segment->info = NULL;
-				if (current_virtual_segment->next == NULL) {  //подумать, нужно ли
+
+				if (current_virtual_segment->next == NULL) {  
 					current_virtual_segment->next = (struct v_segment*)malloc(sizeof(struct v_segment));
 				}
 				current_virtual_segment->next = new_virtual_segment;
@@ -175,7 +176,6 @@ int _read(VA ptr, char* pBuffer, size_t szBuffer)
 							size_t newBlockSize = current_physical_segment->size - current_virtual_segment->size;
 							struct p_segment* new_physical_segment = (struct p_segment*)malloc(sizeof(struct p_segment));
 							create_new_physical_segment(current_physical_segment, new_physical_segment, newBlockSize);
-							new_physical_segment->virtual_adress = NULL;
 							current_physical_segment->size = current_virtual_segment->size;
 							unionFreePhysicalSegments();
 						}
@@ -199,7 +199,9 @@ int _read(VA ptr, char* pBuffer, size_t szBuffer)
 					while (current_physical_segment != NULL)
 					{
 						size += current_physical_segment->size;
-						current_physical_segment->virtual_adress->physical_adress = NULL;
+						if (current_physical_segment->virtual_adress != NULL) {
+							current_physical_segment->virtual_adress->physical_adress = NULL;
+						}
 						if (current_virtual_segment->size <= size) break;
 						current_physical_segment = current_physical_segment->next;
 					};
@@ -207,11 +209,13 @@ int _read(VA ptr, char* pBuffer, size_t szBuffer)
 					if (size > current_virtual_segment->size) {
 						struct p_segment* new_physical_segment = (struct p_segment*)malloc(sizeof(struct p_segment));
 						create_new_physical_segment(initial_physical_segment, new_physical_segment, size - current_virtual_segment->size);
-						new_physical_segment->virtual_adress = NULL;
 						unionFreePhysicalSegments();
 					}
+					else {
+						initial_physical_segment->next = current_physical_segment->next;
+					}
 					current_virtual_segment->physical_adress = (struct p_segment*)malloc(sizeof(struct p_segment));
-					current_virtual_segment->physical_adress = initial_physical_segment; //initual->adress
+					current_virtual_segment->physical_adress = initial_physical_segment;
 					if (initial_physical_segment->virtual_adress != NULL) {
 						initial_physical_segment->virtual_adress = NULL;
 					}
@@ -270,13 +274,14 @@ int _write(VA ptr, void* pBuffer, size_t szBuffer)
 							size_t newBlockSize = current_physical_segment->size - current_virtual_segment->size;
 							struct p_segment* new_physical_segment = (struct p_segment*)malloc(sizeof(struct p_segment));
 							create_new_physical_segment(current_physical_segment, new_physical_segment, newBlockSize);
-							new_physical_segment->virtual_adress = NULL;
 							current_physical_segment->size = current_virtual_segment->size;
 							unionFreePhysicalSegments();
 						}
 
 						current_physical_segment->isFree = false;
-						current_physical_segment->virtual_adress->physical_adress = NULL;
+						if (current_physical_segment->virtual_adress != NULL) {
+							current_physical_segment->virtual_adress->physical_adress = NULL;
+						}
 						current_physical_segment->virtual_adress = current_virtual_segment;
 						current_virtual_segment->physical_adress = (struct p_segment*)malloc(sizeof(struct p_segment));
 						current_virtual_segment->physical_adress = current_physical_segment;
@@ -300,7 +305,9 @@ int _write(VA ptr, void* pBuffer, size_t szBuffer)
 					while (current_physical_segment != NULL)
 					{
 						size += current_physical_segment->size;
-						current_physical_segment->virtual_adress->physical_adress = NULL;
+						if (current_physical_segment->virtual_adress != NULL) {
+							current_physical_segment->virtual_adress->physical_adress = NULL;
+						}
 						if (current_virtual_segment->size <= size) break;
 						current_physical_segment = current_physical_segment->next;
 					};
@@ -308,8 +315,10 @@ int _write(VA ptr, void* pBuffer, size_t szBuffer)
 					if (size > current_virtual_segment->size) {
 						struct p_segment* new_physical_segment = (struct p_segment*)malloc(sizeof(struct p_segment));
 						create_new_physical_segment(initial_physical_segment, new_physical_segment, size - current_virtual_segment->size);
-						new_physical_segment->virtual_adress = NULL;
 						unionFreePhysicalSegments();
+					}
+					else {
+						initial_physical_segment->next = current_physical_segment->next;
 					}
 					current_virtual_segment->physical_adress = (struct p_segment*)malloc(sizeof(struct p_segment));
 					current_virtual_segment->physical_adress = initial_physical_segment; //initual->adress
@@ -371,7 +380,7 @@ int _init(int n, int szPage)
 void unionFreeSegments() {
 	struct v_segment* current_virtual_segment = initial_virtual_segment;
 	while (current_virtual_segment != NULL) {
-		if (current_virtual_segment->isFree = true && current_virtual_segment->next != NULL && current_virtual_segment->next->isFree == true) {
+		if (current_virtual_segment->isFree == true && current_virtual_segment->next != NULL && current_virtual_segment->next->isFree == true) {
 			while (current_virtual_segment->next != NULL && current_virtual_segment->next->isFree == true) {
 				current_virtual_segment->size += current_virtual_segment->next->size;
 				current_virtual_segment->next = current_virtual_segment->next->next;
@@ -385,7 +394,7 @@ void unionFreeSegments() {
 void unionFreePhysicalSegments() {
 	struct p_segment* current_physical_segment = initial_physical_segment;
 	while (current_physical_segment != NULL) {
-		if (current_physical_segment->isFree = true && current_physical_segment->next != NULL && current_physical_segment->next->isFree == true) {
+		if (current_physical_segment->isFree == true && current_physical_segment->next != NULL && current_physical_segment->next->isFree == true) {
 			while (current_physical_segment->next != NULL && current_physical_segment->next->isFree == true) {
 				current_physical_segment->size += current_physical_segment->next->size;
 				current_physical_segment->next = current_physical_segment->next->next;
@@ -397,6 +406,7 @@ void unionFreePhysicalSegments() {
 
 void create_new_physical_segment(struct p_segment * p_old_segment, struct p_segment * p_new_segment, size_t newBlockSize)
 {
+	p_new_segment->virtual_adress = NULL;
 	p_new_segment->isFree = true;
 	p_new_segment->size = newBlockSize;
 	p_new_segment->next = (struct p_segment*)malloc(sizeof(struct p_segment));
