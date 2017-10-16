@@ -3,13 +3,6 @@
 
 void main()
 {
-	char* adress;
-	char str[] = "symbols";
-	char buff[] = "qwertyuiop";
-	_init(3, 20);
-	_malloc(&adress, 12);
-	_write(adress, str, 6);
-	_read(adress, buff, 4);
 	//test_init_success();
 	//test_init_incorrect_first_param();
 	//test_init_incorrect_second_param();
@@ -30,7 +23,7 @@ void main()
 	//test_write_incorrect_third_param();
 	//test_write_big_szbuffer();
 	//test_write_undefined_malloc();
-//	test_write_null_physical_segment_free_memory();
+	//test_write_null_physical_segment_free_memory();
 	//test_write_null_physical_segment_no_free_memory();
 	//test_write_null_physical_segment_all_memory_busy();
 	//test_write_success();
@@ -41,5 +34,4 @@ void main()
 	//test_read_undefined_write();
 	//test_read_null_physical_segment_free_memory();
 	//test_read_success();
-
 }

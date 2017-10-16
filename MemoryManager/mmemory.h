@@ -12,13 +12,20 @@ typedef char* VA;	// Тип описывающий адрес блока
 #define  UNKNOWN_ERROR  1
 #define  ACCESS_OUTSIDE_BLOCK  -2
 
-struct segment {
+struct v_segment {
 	VA adress;
-	struct segment* physical_adress;
+	struct p_segment* physical_adress;
 	size_t size;
 	bool isFree;
 	char* info;
-	struct segment * next;
+	struct v_segment * next;
+};
+
+struct p_segment {
+	struct v_segment* virtual_adress;
+	size_t size;
+	bool isFree;
+	struct p_segment* next;
 };
 
 struct real_memory {
@@ -35,5 +42,7 @@ int _read(VA ptr, char* pBuffer, size_t szBuffer);
 int _write(VA ptr, void* pBuffer, size_t szBuffer);
 
 int _init(int n, int szPage);
+
+void unionFreeSegments();
 
 #endif // MEMORY_H
