@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <time.h>
 #include "tests.h"
+#include <conio.h>
+#include <io.h>
 #include "mmemory.h"
 
 //_init()
@@ -348,13 +350,52 @@ void test_read_info() {
 }
 
 void load_test(){
-	int sizes[10];
-	int rand_size;
+	FILE* result;
+	result = fopen("result.txt", "wb");
+	//fprintf(result, %d"", k);
+	size_t sizes[10];
+	VA adresses[10];
+	size_t rand_size;
 	srand(time(NULL));
+	int numberOfSegment = 0;
+	size_t maxSize = 0;
+	size_t freeSize = 0;
+	size_t maxFreeSize = 0;
+	int numberOfFreeSegments = 0;
 	for (int i = 0; i < 10; i++) {
 		rand_size = 1 + rand() % 10;
 		sizes[i] = rand_size;
+		maxSize += rand_size;
 	}
-
-
+	_init(2, maxSize);
+	for (int i = 0; i < 10; i++) {
+		VA adress;
+		_malloc(&adress, sizes[i]);
+		adresses[i] = adress;
+	}
+	while (numberOfSegment< 10) {
+		free(adresses[numberOfSegment]);
+		if (sizes[numberOfSegment] > maxFreeSize) {
+			maxFreeSize = sizes[numberOfSegment];
+		}
+		freeSize += sizes[numberOfSegment];
+		adresses[numberOfSegment] = NULL;
+		numberOfSegment += 1 + rand() % 2;
+		numberOfFreeSegments++;
+		fprintf(result, "%d \t %d \n", numberOfFreeSegments, maxFreeSize/freeSize);
+	}
+	numberOfSegment = 1;
+	while (numberOfSegment < 10) {
+		if (adresses[numberOfSegment] != NULL) {
+			free(adresses[numberOfSegment]);
+			if (sizes[numberOfSegment] > maxFreeSize) {
+				maxFreeSize = sizes[numberOfSegment];
+			}
+			freeSize += sizes[numberOfSegment];
+			adresses[numberOfSegment] = NULL;
+			numberOfFreeSegments++;
+			fprintf(result, "%d \t %d \n", numberOfFreeSegments, maxFreeSize / freeSize);
+		}
+	}
+	fclose(result);
 }
