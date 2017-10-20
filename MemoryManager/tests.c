@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <time.h>
 #include "tests.h"
 #include "mmemory.h"
 
@@ -276,7 +277,7 @@ void test_read_big_szbuffer()
 	char str[] = "symboltext";
 	_init(3, 20);
 	_malloc(&first_adress, 15);
-	_malloc(&second_adress, 10);
+	_malloc(&second_adress, 9);
 	_write(second_adress, str, 5);
 	assert(_read(second_adress, buff, 10) == INCORRECT_PARAMETERS);
 }
@@ -334,4 +335,26 @@ void test_read_null_physical_segment_no_free_memory()
 	_write(third_adress, str, 7);
 	_write(first_adress, str, 5);
 	assert(_read(third_adress, buff, 5) == SUCCESSFUL_EXECUTION);
+}
+
+void test_read_info() {
+	char * some;
+	char buff[] = "qwertyuiop";
+	char result[] = "fgskvusbuite";
+	_init(2, 20);
+	_malloc(&some, 20);
+	_write(some + 2, buff, 10);
+	assert(_read(some + 1, result, 12)== SUCCESSFUL_EXECUTION);
+}
+
+void load_test(){
+	int sizes[10];
+	int rand_size;
+	srand(time(NULL));
+	for (int i = 0; i < 10; i++) {
+		rand_size = 1 + rand() % 10;
+		sizes[i] = rand_size;
+	}
+
+
 }

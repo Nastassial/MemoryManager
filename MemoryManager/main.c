@@ -35,5 +35,6 @@ void main()
 	test_read_null_physical_segment_free_memory();
 	test_read_null_physical_segment_no_free_memory();
 	test_read_success();
-	*/
+	test_read_info();
+	load_test();
 }

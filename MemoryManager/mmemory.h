@@ -49,4 +49,7 @@ void unionFreePhysicalSegments();
 
 void create_new_physical_segment(struct p_segment * p_old_segment, struct p_segment * p_new_segment, size_t newBlockSize);
 
+void read_information(char* temp, void* pBuffer, struct v_segment* current_virtual_segment, VA ptr, size_t infoSize);
+
+void write_information(struct v_segment* current_virtual_segment, VA ptr, char* newInfo, size_t infoSize);
 #endif // MEMORY_H
