@@ -351,51 +351,140 @@ void test_read_info() {
 
 void load_test(){
 	FILE* result;
-	result = fopen("result.txt", "wb");
-	//fprintf(result, %d"", k);
-	size_t sizes[10];
-	VA adresses[10];
+	result = fopen("result_1.txt", "w");
+	fprintf(result, "N\t\\t\ts/S\n");
+	int numberOfSegments = 500;
+	size_t sizes[500];
+	VA adresses[500];
 	size_t rand_size;
-	srand(time(NULL));
 	int numberOfSegment = 0;
 	size_t maxSize = 0;
 	size_t freeSize = 0;
 	size_t maxFreeSize = 0;
 	int numberOfFreeSegments = 0;
-	for (int i = 0; i < 10; i++) {
+	srand(time(NULL));
+	for (int i = 0; i < numberOfSegments; i++) {
 		rand_size = 1 + rand() % 10;
 		sizes[i] = rand_size;
 		maxSize += rand_size;
 	}
 	_init(2, maxSize);
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < numberOfSegments; i++) {
 		VA adress;
 		_malloc(&adress, sizes[i]);
 		adresses[i] = adress;
 	}
-	while (numberOfSegment< 10) {
-		free(adresses[numberOfSegment]);
+	while (numberOfSegment< numberOfSegments) {
+		_free(adresses[numberOfSegment]);
+		adresses[numberOfSegment] = NULL;
+		freeSize += sizes[numberOfSegment];
+		if (numberOfSegment != 0) {
+			int prev = numberOfSegment-1;
+			if (adresses[prev] == NULL) {
+				sizes[numberOfSegment] += sizes[prev];
+			}
+		}
 		if (sizes[numberOfSegment] > maxFreeSize) {
 			maxFreeSize = sizes[numberOfSegment];
 		}
-		freeSize += sizes[numberOfSegment];
-		adresses[numberOfSegment] = NULL;
 		numberOfSegment += 1 + rand() % 2;
 		numberOfFreeSegments++;
-		fprintf(result, "%d \t %d \n", numberOfFreeSegments, maxFreeSize/freeSize);
+		double res =(double) maxFreeSize/freeSize;
+		fprintf(result, "%d\t\\t\t%f\n", numberOfFreeSegments, res);
 	}
 	numberOfSegment = 1;
-	while (numberOfSegment < 10) {
+	while (numberOfSegment < numberOfSegments) {
 		if (adresses[numberOfSegment] != NULL) {
-			free(adresses[numberOfSegment]);
+			_free(adresses[numberOfSegment]);
+			adresses[numberOfSegment] = NULL;
+			freeSize += sizes[numberOfSegment];
+			int prev = numberOfSegment-1;
+			if (adresses[prev] == NULL) {
+					sizes[numberOfSegment] += sizes[prev];
+				}
+				prev += 2;
+				if (prev<numberOfSegments && adresses[prev] == NULL) {
+					while (adresses[prev] == NULL) {
+						prev++;
+					}
+					prev--;
+					sizes[numberOfSegment] += sizes[prev];
+					sizes[prev] = sizes[numberOfSegment];
+			}
 			if (sizes[numberOfSegment] > maxFreeSize) {
 				maxFreeSize = sizes[numberOfSegment];
 			}
-			freeSize += sizes[numberOfSegment];
-			adresses[numberOfSegment] = NULL;
 			numberOfFreeSegments++;
-			fprintf(result, "%d \t %d \n", numberOfFreeSegments, maxFreeSize / freeSize);
+			double res = (double) maxFreeSize/freeSize;
+			fprintf(result, "%d\t\\t\t%f\n", numberOfFreeSegments, res);
 		}
+		numberOfSegment++;
+	}
+	fclose(result);
+}
+
+void load_test_segments_number() {
+	FILE* result;
+	result = fopen("result_2.txt", "w");
+	fprintf(result, "N\t\\t\tn/N\n");
+	int numberOfSegments = 500;
+	size_t sizes[500];
+	VA adresses[500];
+	size_t rand_size;
+	size_t size = 0;
+	int segmentsNumber = numberOfSegments;
+	int numberOfFreeSegments = 1;
+	int numberOfSegment = 0;
+	int freeSegments = 0;
+	srand(time(NULL));
+	for (int i = 0; i < numberOfSegments; i++) {
+		rand_size = 1 + rand() % 10;
+		sizes[i] = rand_size;
+		size += rand_size;
+	}
+	_init(2, size);
+	for (int i = 0; i < numberOfSegments; i++) {
+		VA adress;
+		_malloc(&adress, sizes[i]);
+		adresses[i] = adress;
+	}
+	while (numberOfSegment< numberOfSegments) {
+		_free(adresses[numberOfSegment]);
+		freeSegments++;
+		adresses[numberOfSegment] = NULL;
+		if (numberOfSegment != 0) {
+			int prev = numberOfSegment - 1;
+			if (adresses[prev] != NULL) {
+				numberOfFreeSegments++;
+			}
+			else {
+				segmentsNumber--;
+			}
+		}
+		numberOfSegment += 1 + rand() % 2;
+		double res = (double)numberOfFreeSegments / segmentsNumber;
+		fprintf(result, "%d\t\\t\t%f\n", freeSegments, res);
+	}
+
+	numberOfSegment = 1;
+
+	while (numberOfSegment < numberOfSegments) {
+		if (adresses[numberOfSegment] != NULL) {
+			_free(adresses[numberOfSegment]);
+			freeSegments++;
+			adresses[numberOfSegment] = NULL;
+			int next = numberOfSegment + 1;
+			if (next<numberOfSegments && adresses[next] == NULL) {
+				numberOfFreeSegments--;
+				if (adresses[numberOfSegment - 1] == NULL) {
+				segmentsNumber--;
+				}
+				segmentsNumber--;
+			}
+			double res = (double)numberOfFreeSegments / segmentsNumber;
+			fprintf(result, "%d\t\\t\t%f\n", freeSegments, res);
+		}
+		numberOfSegment++;
 	}
 	fclose(result);
 }
