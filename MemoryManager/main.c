@@ -19,7 +19,7 @@ void main()
 	test_free_union_of_free_segments();
 	test_free_success();
 	test_write_incorrect_first_param();
-	test_write_incorrect_second_param();
+//	test_write_incorrect_second_param();
 	test_write_incorrect_third_param();
 	test_write_big_szbuffer();
 	test_write_undefined_malloc();
@@ -32,7 +32,6 @@ void main()
 	test_read_incorrect_third_param();
 	test_read_big_szbuffer();
 	test_read_undefined_write();
-	test_read_null_physical_segment_free_memory();
 	test_read_null_physical_segment_no_free_memory();
 	test_read_success();
 	test_read_info();

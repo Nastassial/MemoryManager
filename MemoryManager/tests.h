@@ -30,12 +30,11 @@ void test_write_null_physical_segment_all_memory_busy();
 void test_write_success();
 
 void test_read_incorrect_first_param();
-void test_read_incorrect_second_param();
+//void test_read_incorrect_second_param();
 void test_read_incorrect_third_param();
 void test_read_big_szbuffer();
 void test_read_success();
 void test_read_undefined_write();
-void test_read_null_physical_segment_free_memory();
 void test_read_null_physical_segment_no_free_memory();
 void test_read_info();
 void load_test();
