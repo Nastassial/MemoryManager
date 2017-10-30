@@ -137,7 +137,7 @@ void test_write_incorrect_first_param()
 	char str[] = "symbols";
 	assert(_write(third_adress,str,3) == INCORRECT_PARAMETERS);
 }
-/*
+
 void test_write_incorrect_second_param()
 {
 	VA first_adress;
@@ -146,7 +146,7 @@ void test_write_incorrect_second_param()
 	_malloc(&first_adress, 20);
 	assert(_write(first_adress, str, 15) == INCORRECT_PARAMETERS);
 }
-*/
+
 
 void test_write_incorrect_third_param()
 {
@@ -266,18 +266,6 @@ void test_read_big_szbuffer()
 	_malloc(&second_adress, 9);
 	_write(second_adress, str, 5);
 	assert(_read(second_adress, buff, 10) == INCORRECT_PARAMETERS);
-}
-
-void test_read_undefined_write()
-{
-	VA first_adress;
-	VA second_adress;
-	char buff[] = "sometext";
-	char str[] = "symbols";
-	_init(3, 20);
-	_malloc(&first_adress, 15);
-	_malloc(&second_adress, 10);
-	assert(_read(first_adress, buff, 5) == UNKNOWN_ERROR);
 }
 
 void test_read_success()

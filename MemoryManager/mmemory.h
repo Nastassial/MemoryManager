@@ -14,17 +14,19 @@ typedef char* VA;	// Тип описывающий адрес блока
 
 struct v_segment {
 	VA adress;
-	struct p_segment* physical_adress;
+	VA physical_adress;
+	struct p_segment* physical_segment;
 	size_t size;
 	bool isFree;
-	char* info;
+	VA info;
 	struct v_segment * next;
 };
 
 struct p_segment {
-	struct v_segment* virtual_adress;
+	struct v_segment* virtual_segment;
 	size_t size;
 	bool isFree;
+	VA info;
 	struct p_segment* next;
 };
 
@@ -47,7 +49,13 @@ void unionFreeSegments();
 
 void unionFreePhysicalSegments();
 
-void create_new_physical_segment(struct p_segment * p_old_segment, struct p_segment * p_new_segment, size_t newBlockSize);
+VA malloc_info(VA* info, size_t size);
+
+void set_links(struct p_segment* physical_segment, struct v_segment* virtual_segment);
+
+void connect_segments(struct p_segment * first_segment, struct  p_segment * second_segment);
+
+struct p_segment * create_new_physical_segment(size_t newBlockSize);
 
 void read_information(char* temp, void* pBuffer, struct v_segment* current_virtual_segment, VA ptr, size_t infoSize);
 
